@@ -2,8 +2,8 @@
 
 angular
     .module('schemaForm')
-    .config(['schemaFormProvider', 'schemaFormDecoratorsProvider', 'sfPathProvider',
-       function (schemaFormProvider, schemaFormDecoratorsProvider, sfPathProvider) {
+    .config(['schemaFormProvider', 'schemaFormDecoratorsProvider', 'sfPathProvider', 'sfBuilderProvider',
+       function (schemaFormProvider, schemaFormDecoratorsProvider, sfPathProvider, sfBuilderProvider) {
           var defaultPatternMsg  = 'Wrong file type. Allowed types are ',
               defaultMaxSizeMsg1 = 'This file is too large. Maximum size allowed is ',
               defaultMaxSizeMsg2 = 'Current file size:',
@@ -60,13 +60,19 @@ angular
              }
           };
 
-          schemaFormProvider.defaults.array.unshift(nwpMultifileUpload);
+          var ngModelOptions = sfBuilderProvider.builders.ngModelOptions;
+          var ngModel = sfBuilderProvider.builders.ngModel;
+          var sfField = sfBuilderProvider.builders.sfField;
+          var condition = sfBuilderProvider.builders.condition;
+          var defaults = [sfField, ngModel, ngModelOptions, condition];
 
-          schemaFormDecoratorsProvider.addMapping(
+          schemaFormDecoratorsProvider.defineAddOn(
               'bootstrapDecorator',
               'nwpFileUpload',
-              'directives/decorators/bootstrap/nwp-file/nwp-file.html'
+              'directives/decorators/bootstrap/nwp-file/nwp-file.html',
+              defaults
           );
+
        }
     ]);
 

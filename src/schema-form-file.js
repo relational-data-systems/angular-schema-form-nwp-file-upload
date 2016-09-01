@@ -75,10 +75,23 @@ angular
        'ngFileUpload',
        'ngMessages'
     ])
+    .controller('ngSchemaFileController',['$scope', function($scope) {
+       $scope.initInternalModel = function(model){
+          if(model) {
+             $scope.picFile = {};
+             $scope.picFile.result = model;
+             $scope.picFile.name = model.name;
+             $scope.picFile.progress = 100;
+             $scope.picFile.size = 0;
+             $scope.picFile.type = model.type;
+          }
+       };
+    }])
     .directive('ngSchemaFile', ['Upload', '$timeout', '$q', function (Upload, $timeout, $q) {
        return {
           restrict: 'A',
           scope:    true,
+          controller: 'ngSchemaFileController',
           require:  'ngModel',
           link:     function (scope, element, attrs, ngModel) {
              scope.url = scope.form && scope.form.endpoint;
@@ -101,6 +114,8 @@ angular
                 });
              };
 
+             // kelin: handler for the remove action.
+             // TODO: Need to communicate with server for deletion if the file is already uploaded.
              scope.removeFile = function () {
                 if (scope.isSinglefileUpload) {
                    scope.picFile = null;

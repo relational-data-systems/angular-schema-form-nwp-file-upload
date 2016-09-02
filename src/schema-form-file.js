@@ -60,6 +60,8 @@ angular
              }
           };
 
+          schemaFormProvider.defaults.array.unshift(nwpMultifileUpload);
+
           var ngModelOptions = sfBuilderProvider.builders.ngModelOptions;
           var ngModel = sfBuilderProvider.builders.ngModel;
           var sfField = sfBuilderProvider.builders.sfField;

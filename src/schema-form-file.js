@@ -65,8 +65,9 @@ angular
           var ngModelOptions = sfBuilderProvider.builders.ngModelOptions;
           var ngModel = sfBuilderProvider.builders.ngModel;
           var sfField = sfBuilderProvider.builders.sfField;
-          var condition = sfBuilderProvider.builders.condition;
-          var defaults = [sfField, ngModel, ngModelOptions, condition];
+          var condition = sfBuilderProvider.builders.condition;          
+		  var complexValidation = sfBuilderProvider.builders.complexValidation;
+          var defaults = [sfField, ngModel, ngModelOptions, condition, complexValidation];
 
           schemaFormDecoratorsProvider.defineAddOn(
               'bootstrapDecorator',
@@ -85,7 +86,7 @@ angular
     ])
     .controller('ngSchemaFileController',['$scope', function($scope) {
        $scope.initInternalModel = function(model){
-          if(model) {
+          if(model && model.type && model.name) {			  
              $scope.picFile = {};
              $scope.picFile.result = model;
              $scope.picFile.name = model.name;
@@ -106,7 +107,23 @@ angular
              scope.isSinglefileUpload = scope.form && scope.form.schema && scope.form.schema.format === 'singlefile';
 
              scope.selectFile  = function (file) {
+                if(!file) 
+					return;
                 scope.picFile = file;
+				
+				if(scope.$$prevSibling && scope.$$prevSibling.form && scope.$$prevSibling.form.key.join('.').startsWith(scope.form.key.join('.'))) {
+					
+					toggleValidationFileMetadataComponents(true);
+										
+					var expr = "evalExpr('"+scope.fieldToWatch+"',{ model: model, 'arrayIndex': 0, 'modelValue': ''})";
+					scope.removeWatchForRequireMetadata = scope.$watch(expr, function watchIt(value) {						
+						if(!value) {
+							scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata');
+						} else {
+							scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata', true);
+						}
+					});
+				}
              };
              scope.selectFiles = function (files) {
                 scope.picFiles = files;
@@ -126,9 +143,21 @@ angular
              // TODO: Need to communicate with server for deletion if the file is already uploaded.
              scope.removeFile = function () {
                 if (scope.isSinglefileUpload) {
-                   scope.picFile = null;
-                   ngModel.$setViewValue();
-                   ngModel.$commitViewValue();
+                   				   
+				   if(scope.picFile && scope.picFile.result) {  //Already uploaded file, remove the whole file object including file metadatas
+						ngModel.$setViewValue();
+						ngModel.$commitViewValue();
+				   }
+				   
+				   scope.picFile = null;
+				   
+				   if(scope.removeWatchForRequireMetadata) {
+						scope.removeWatchForRequireMetadata();
+						delete scope.removeWatchForRequireMetadata;
+						scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata', true);
+						toggleValidationFileMetadataComponents(false);
+				   }
+				   
                 } else {
 
                 }
@@ -160,13 +189,13 @@ angular
                 }
              }
 
-             scope.validateField = function () {
+             scope.validateField = function () {				
                 if (scope.uploadForm.file && scope.uploadForm.file.$valid && scope.picFile && !scope.picFile.$error) {
-                   console.log('singlefile-form is invalid');
+                   //console.log('singlefile-form is invalid');
                 } else if (scope.uploadForm.files && scope.uploadForm.files.$valid && scope.picFiles && !scope.picFiles.$error) {
-                   console.log('multifile-form is  invalid');
+                   //console.log('multifile-form is  invalid');
                 } else {
-                   console.log('single- and multifile-form are valid');
+                   //console.log('single- and multifile-form are valid');
                 }
              };
              scope.submit        = function () {
@@ -178,6 +207,22 @@ angular
              };
              scope.$on('schemaFormValidate', scope.validateField);
              scope.$on('schemaFormFileUploadSubmit', scope.submit);
+			 
+			 function toggleValidationFileMetadataComponents(required) {
+				var fieldToWatch = ""
+				var next = scope.$$prevSibling;
+				while(next && next.form && next.form.key && next.form.key.join('.').startsWith(scope.form.key.join('.'))) {
+					next.form.required = required;					
+					next.$broadcast("schemaFormValidate");
+					fieldToWatch +="model."+next.form.key.join('.')+"&&";
+					
+					next = next.$$prevSibling;						
+				}
+				if(fieldToWatch.length>0) {
+					fieldToWatch = fieldToWatch.substring(0,fieldToWatch.length-2);
+				}
+				scope.fieldToWatch = fieldToWatch;
+			 }
           }
        };
     }]);

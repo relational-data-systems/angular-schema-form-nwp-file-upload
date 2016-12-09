@@ -3,8 +3,9 @@
       {{ form.title }}<i ng-show="form.required">&nbsp;*</i>
    </label>
 
-   <div ng-show="picFile">
+   <div ng-show="picFile" class="well well-sm bg-white mb" ng-class="{'has-error border-danger': (uploadForm.$error.required && !uploadForm.$pristine) || (hasError() && errorMessage(schemaError()))}">
       <div ng-include="'uploadProcess.html'" class="mb"></div>
+	  <span class="help-block" sf-message="form.description"></span>
    </div>
 
    <ul ng-show="picFiles && picFiles.length" class="list-group">
@@ -49,7 +50,7 @@
             </div>
          </div>
          <button class="btn btn-primary btn-sm" type="button" ng-click="uploadFile(picFile)"
-                 ng-disabled="!picFile || picFile.result || picFile.$error">{{ !picFile.result ?  "buttons.upload" : "buttons.uploaded" | translate }}
+                 ng-disabled="ngModel.$error.requireMetadata||!picFile || picFile.result || picFile.$error">{{ !picFile.result ?  "buttons.upload" : "buttons.uploaded" | translate }}
          </button>
          <button class="btn btn-danger btn-sm" type="button" ng-click="removeFile(picFile)"
                  ng-disabled="!picFile || picFile.$error">{{ "buttons.remove" | translate }}

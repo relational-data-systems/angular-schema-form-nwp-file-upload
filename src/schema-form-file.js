@@ -111,12 +111,12 @@ angular
 					return;
                 scope.picFile = file;
 				
-				if(scope.$$prevSibling && scope.$$prevSibling.form && scope.$$prevSibling.form.key.join('.').startsWith(scope.form.key.join('.'))) {
+				if(scope.$$prevSibling&&scope.$$prevSibling.form&&scope.$$prevSibling.form.key.join('.').startsWith(scope.form.key.join('.'))) {
 					
 					toggleValidationFileMetadataComponents(true);
 										
 					var expr = "evalExpr('"+scope.fieldToWatch+"',{ model: model, 'arrayIndex': 0, 'modelValue': ''})";
-					scope.removeWatchForRequireMetadata = scope.$watch(expr, function watchIt(value) {						
+					scope.removeWatchForRequireMetadata = scope.$watch(expr, function watchIt(value) {
 						if(!value) {
 							scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata');
 						} else {
@@ -167,14 +167,18 @@ angular
                 if (file && !file.$error && scope.url) {
                    file.upload = Upload.upload({
                       url:  scope.url,
-                      file: file
+                      file: file,
+					  data: { metadata: ngModel.$modelValue}
                    });
 
                    file.upload.then(function (response) {
                       $timeout(function () {
                          file.result = response.data;
                       });
-                      ngModel.$setViewValue(response.data);
+					  if(ngModel.$modelValue)
+						ngModel.$setViewValue(angular.merge( ngModel.$modelValue,response.data));
+					  else 
+						ngModel.$setViewValue(response.data);  
                       ngModel.$commitViewValue();
                    }, function (response) {
                       if (response.status > 0) {

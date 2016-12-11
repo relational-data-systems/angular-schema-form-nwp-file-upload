@@ -111,7 +111,7 @@ angular
 					return;
                 scope.picFile = file;
 				
-				if(scope.$$prevSibling&&scope.$$prevSibling.form&&scope.$$prevSibling.form.key.join('.').startsWith(scope.form.key.join('.'))) {
+				if(scope.$$prevSibling && scope.$$prevSibling.form && scope.$$prevSibling.form.key.join('.').startsWith(scope.form.key.join('.'))) {
 					
 					toggleValidationFileMetadataComponents(true);
 										
@@ -176,9 +176,9 @@ angular
                          file.result = response.data;
                       });
 					  if(ngModel.$modelValue)
-						ngModel.$setViewValue(angular.merge( ngModel.$modelValue,response.data));
+						  ngModel.$setViewValue(angular.merge( ngModel.$modelValue,response.data));
 					  else 
-						ngModel.$setViewValue(response.data);  
+						  ngModel.$setViewValue(response.data);  
                       ngModel.$commitViewValue();
                    }, function (response) {
                       if (response.status > 0) {

@@ -106,6 +106,8 @@ angular
              scope.url = scope.form && scope.form.endpoint;
              scope.isSinglefileUpload = scope.form && scope.form.schema && scope.form.schema.format === 'singlefile';
 
+             var saveFormAfterUploaded = scope.form && scope.form.saveFormAfterUploaded;
+
              scope.selectFile  = function (file) {
                 if(!file) 
 					return;
@@ -175,11 +177,20 @@ angular
                       $timeout(function () {
                          file.result = response.data;
                       });
-					  if(ngModel.$modelValue)
+					  if(ngModel.$modelValue) {
 						  ngModel.$setViewValue(angular.merge( ngModel.$modelValue,response.data));
-					  else 
+                      } else  {
 						  ngModel.$setViewValue(response.data);  
+                      }
                       ngModel.$commitViewValue();
+                      
+                      if (saveFormAfterUploaded) {
+                         scope.$emit("rdsSchemaFormCtrl.save", {
+                             source: 'ngSchemaFile',
+                             file: file,
+                             form: scope.form
+                         });
+                     }
                    }, function (response) {
                       if (response.status > 0) {
                          scope.errorMsg = response.status + ': ' + response.data;

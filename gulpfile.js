@@ -7,7 +7,6 @@ var settings = {
   dist: appRoot + 'dist/',
   karmaConfig: appRoot + 'karma.conf.js'
 };
-
 global.settings = settings;
 
 require('./gulp');

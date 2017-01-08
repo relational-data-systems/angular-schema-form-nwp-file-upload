@@ -28,7 +28,11 @@ module.exports = function(config) {
       "bower_components/angular-datepicker/dist/angular-datepicker.js",
       "bower_components/angular-schema-form-bootstrap/bootstrap-decorator.js",
       // end-inject-bower
-      "bower_components/angular-mocks/angular-mocks.js"
+      "bower_components/angular-mocks/angular-mocks.js",
+      // inject-app
+      "src/schema-form-file.spec.js",
+      "src/schema-form-file.js",
+      // end-inject-app
     ],
 
 

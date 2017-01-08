@@ -8,7 +8,7 @@ var gulp = require('gulp'),
 
 
 console.log(settings);
-consolg.log(handleErrors);
+console.log(handleErrors);
 
 function filepathForKarma(filepath, file, i, length) {
   return '"' + filepath + '",';
@@ -27,12 +27,15 @@ gulp.task('inject-test:vendor', function () {
     .pipe(plumber({errorHandler: handleErrors}))
     .pipe(inject(
       gulp.src(
-        bowerFiles("**/*.js", {checkExistence:true}),
-        {read: false}
+        bowerFiles("**/*.js", { checkExistence: true }),
+        { read: false }
       ).pipe(debug()),
       injectOptions
-      ))
-    .pipe(gulp.dest(path.dirname(config.karmaConf)));
+    )).pipe(gulp.dest(settings.appRoot));
 
   return stream;
+});
+
+gulp.task('inject-test', function() {
+  runSequence(['inject-test:vendor']);
 });

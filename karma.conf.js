@@ -15,13 +15,15 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'src/*.js'
+      // inject-bower
+      // end-inject-bower
     ],
 
 
     // list of files to exclude
     exclude: [
-      '**/*.html'
+      // inject-bower
+      // end-inject-bower
     ],
 
 

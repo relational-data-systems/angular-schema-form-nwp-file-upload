@@ -1,13 +1,6 @@
-describe('AngularSchemaFormFileUpload', function() {
-  beforeEach(angular.mock.module('schemaForm'));
-
-  beforeEach(inject(function($rootScope) {
-    $scope = $rootScope.$new();
-    $scope.loadDataPath = "/no/such/path";
-  }));
-
+describe('hello', function() {
   it('should be defined', function() {
-    expect(1).toBe(1);
+    var def = '1';
+    expect(def).toBeDefined();
   });
-
 });

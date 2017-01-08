@@ -56,3 +56,10 @@ gulp.task('inject-test:asf-file-upload', function () {
 gulp.task('inject-test', function() {
   runSequence('inject-test:vendor', 'inject-test:asf-file-upload');
 });
+
+gulp.task('test', function(done) {
+  new KarmaServer({
+    configFile: settings.karmaconfig,
+    singleRun: true
+  }, done).start()
+});

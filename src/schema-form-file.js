@@ -66,7 +66,7 @@ angular
           var ngModel = sfBuilderProvider.builders.ngModel;
           var sfField = sfBuilderProvider.builders.sfField;
           var condition = sfBuilderProvider.builders.condition;          
-		  var complexValidation = sfBuilderProvider.builders.complexValidation;
+		      var complexValidation = sfBuilderProvider.builders.complexValidation;
           var defaults = [sfField, ngModel, ngModelOptions, condition, complexValidation];
 
           schemaFormDecoratorsProvider.defineAddOn(

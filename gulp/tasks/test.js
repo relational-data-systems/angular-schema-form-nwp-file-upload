@@ -59,7 +59,7 @@ gulp.task('inject-test', function() {
 
 gulp.task('test', function(done) {
   new KarmaServer({
-    configFile: settings.karmaconfig,
+    configFile: settings.karmaConfig,
     singleRun: true
   }, done).start()
 });

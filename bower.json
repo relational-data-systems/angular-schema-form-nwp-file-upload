@@ -35,5 +35,8 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "resolutions": {
+    "angular-schema-form": "development"
+  }
 }

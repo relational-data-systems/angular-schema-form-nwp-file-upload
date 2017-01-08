@@ -7,9 +7,6 @@ var gulp = require('gulp'),
     debug = require('gulp-debug');
 
 
-console.log(settings);
-console.log(handleErrors);
-
 function filepathForKarma(filepath, file, i, length) {
   return '"' + filepath + '",';
 }

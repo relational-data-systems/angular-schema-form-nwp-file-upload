@@ -16,14 +16,25 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       // inject-bower
+      "bower_components/angular/angular.js",
+      "bower_components/tv4/tv4.js",
+      "bower_components/angular-sanitize/angular-sanitize.js",
+      "bower_components/objectpath/lib/ObjectPath.js",
+      "bower_components/ng-file-upload/ng-file-upload.js",
+      "bower_components/angular-messages/angular-messages.js",
+      "bower_components/moment/moment.js",
+      "bower_components/moment-timezone/builds/moment-timezone-with-data-2010-2020.js",
+      "bower_components/angular-schema-form/dist/schema-form.js",
+      "bower_components/angular-datepicker/dist/angular-datepicker.js",
+      "bower_components/angular-schema-form-bootstrap/bootstrap-decorator.js",
       // end-inject-bower
+      "bower_components/angular-mocks/angular-mocks.js"
     ],
 
 
     // list of files to exclude
     exclude: [
-      // inject-bower
-      // end-inject-bower
+      '**/*.html'
     ],
 
 

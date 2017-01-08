@@ -4,8 +4,6 @@ var fs = require('fs'),
   notify = require("gulp-notify"),
   argv = require('yargs').argv;
 
-console.log(settings);
-
 global.handleErrors = function () {
   var args = Array.prototype.slice.call(arguments);
   var notification = argv.notification === undefined ? true : argv.notification;
@@ -21,7 +19,6 @@ global.handleErrors = function () {
   // Keep gulp from hanging on this task
   this.emit('end');
 };
-
 
 tasks.forEach(function(task) {
   require('./tasks/' + task);

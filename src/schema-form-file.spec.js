@@ -88,9 +88,9 @@ describe('schema-form-file\'s ngSchemaFileController', function() {
       saveFormAfterUploaded: true
     };
 
-    var saved = false;
+    var saveEventFired = false;
     $rootScope.$on('rdsSchemaFormCtrl.save', function() {
-      saved = true;
+      saveEventFired = true;
     });
 
     var expectedResponse = {
@@ -117,7 +117,7 @@ describe('schema-form-file\'s ngSchemaFileController', function() {
     expect($scope.initInternalModel).toBeDefined();
     expect($scope.selectFile).toBeDefined();
     expect($scope.uploadFile).toBeDefined();
-    expect(saved).toBe(true);
+    expect(saveEventFired).toBe(true);
   });
 
   // it('can $emit a "rdsSchemaFormCtrl.save" event if form.autoSaveAfterUploaded is true', function() {

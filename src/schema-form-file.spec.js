@@ -64,20 +64,64 @@ describe('schema-form-file\'s ngSchemaFileController', function() {
   // beforeEach(angular.mock.module('schemaForm'));
   beforeEach(angular.mock.module('ngSchemaFormFile'));
 
-  var $controller; // The service that is responsible for instantiating controllers, injected below
+  var $compile,
+      $controller,
+      $rootScope,
+      $httpBackend;
 
-  beforeEach(inject(function(_$controller_) { // The injector unwraps the underscores (_) from around the parameter names when matching
+  beforeEach(inject(function(_$compile_, _$controller_, _$rootScope_, _$httpBackend_) { // The injector unwraps the underscores (_) from around the parameter names when matching
+    $compile = _$compile_;
     $controller = _$controller_;
+    $rootScope = _$rootScope_;
+    $httpBackend = _$httpBackend_;
   }));
 
-  it('should have function initInternalModel', function() {
-    var $scope = {};
-    var ngSchemaFileController = $controller('ngSchemaFileController', {
-      $scope: $scope
+  afterEach(function() {
+     $httpBackend.verifyNoOutstandingExpectation();
+     $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('can upload', function() {
+    var $scope = $rootScope.$new();
+    $scope.form = {
+      endpoint: 'http://noSuchPoint-JustForTest.com/upload',
+      autoSaveAfterUploaded: true
+    };
+
+    var saved = false;
+    $rootScope.$on('', function() {
+      saved = true;
     });
 
+    var expectedResponse = {
+      "id": "1",
+      "name": "testFile.png",
+      "type": "image/png"
+    }
+
+    $httpBackend.whenPOST($scope.form.endpoint).respond(200, expectedResponse);
+    // var mockFileToUpload = {"name": "1.html", "size": 1024, "type": "text/html"};
+    var blob = new Blob([""], { type: 'text/html' });
+    blob["lastModifiedDate"] = "";
+    blob["name"] = "1.html";
+    var mockFileToUpload = blob;
+
+    var ngSchemaFileController = $controller('ngSchemaFileController', {$scope: $scope});
+    var ngModelController = $compile('<input ng-model="dummy">')($rootScope.$new()).controller('ngModel'); // A workaround for NgModelController can't be instantiated by $controller in mock tests.
+    ngSchemaFileController.init(ngModelController);
+
+    $scope.uploadFile(mockFileToUpload);
+    $httpBackend.expectPOST($scope.form.endpoint).respond('200');
+    $httpBackend.flush();
+
     expect($scope.initInternalModel).toBeDefined();
+    expect($scope.selectFile).toBeDefined();
+    expect($scope.uploadFile).toBeDefined();
   });
+
+  // it('can $emit a "rdsSchemaFormCtrl.save" event if form.autoSaveAfterUploaded is true', function() {
+    
+  // });
 
 });
 
@@ -93,18 +137,15 @@ describe('ngSchemaFile directive', function() {
     $rootScope = _$rootScope_;
   }));
 
-  it('can $emit a "rdsSchemaFormCtrl.save" event if form.autoSaveAfterUploaded is true', function() {
+  it('can generate a proper child scope', function() {
     var $scope = $rootScope.$new();
     $scope.testModel = {};
 
-    var element = $compile('<ng-form class="file-upload mb-lg" ng-schema-file ng-model="testModel" ng-init="initInternalModel(testModel)" ng-model="$$value$$" name="uploadForm">')($scope);
+    var element = $compile('<ng-form class="file-upload mb-lg" ng-schema-file ng-model="testModel" ng-init="initInternalModel(testModel)" ng-model="testModel" name="uploadForm">')($scope);
 
     var childScopeCreated = element.scope();
     expect(childScopeCreated.$parent).toBe($scope);
     expect(childScopeCreated.selectFile).toBeDefined();
-
-    
-
   });
 });
 

@@ -1,26 +1,4 @@
-describe('schema-form-file-controller', function() {
-  // beforeEach(angular.mock.module('schemaForm'));
-  beforeEach(angular.mock.module('ngSchemaFormFile'));
-
-  var $controller; // The service that is responsible for instantiating controllers, injected below
-
-  beforeEach(inject(function(_$controller_) { // The injector unwraps the underscores (_) from around the parameter names when matching
-    $controller = _$controller_;
-  }));
-
-  it('should have function initInternalModel', function() {
-    var $scope = {};
-    var ngSchemaFileController = $controller('ngSchemaFileController', {
-      $scope: $scope
-    });
-
-    expect($scope.initInternalModel).toBeDefined();
-  });
-
-});
-
-
-describe('schema-form-file-directive', function() {
+describe('The schema-form-file plugin', function() {
   beforeEach(angular.mock.module('schemaForm'));
   beforeEach(angular.mock.module('ngSchemaFormFile'));
 
@@ -32,7 +10,7 @@ describe('schema-form-file-directive', function() {
     $rootScope = _$rootScope_;
   }));
 
-  it('should generate a file upload component', function() {
+  it('can generate a file upload component in an angular-schema-form', function() {
     var $scope = $rootScope.$new();
     $scope.form = [{
       "key": "test-file-key",
@@ -82,6 +60,26 @@ describe('schema-form-file-directive', function() {
     // tmpl.children().eq(0).find('input').attr('ng-model').should.be.equal('model[\'name\']');
     // tmpl.children().eq(0).is('div.form-group').should.be.true;
     // tmpl.children().eq(1).children('select').length.should.equal(1);
-
   });
+});
+
+describe('schema-form-file\'s ngSchemaFileController', function() {
+  // beforeEach(angular.mock.module('schemaForm'));
+  beforeEach(angular.mock.module('ngSchemaFormFile'));
+
+  var $controller; // The service that is responsible for instantiating controllers, injected below
+
+  beforeEach(inject(function(_$controller_) { // The injector unwraps the underscores (_) from around the parameter names when matching
+    $controller = _$controller_;
+  }));
+
+  it('should have function initInternalModel', function() {
+    var $scope = {};
+    var ngSchemaFileController = $controller('ngSchemaFileController', {
+      $scope: $scope
+    });
+
+    expect($scope.initInternalModel).toBeDefined();
+  });
+
 });

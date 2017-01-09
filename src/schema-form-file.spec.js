@@ -85,11 +85,11 @@ describe('schema-form-file\'s ngSchemaFileController', function() {
     var $scope = $rootScope.$new();
     $scope.form = {
       endpoint: 'http://noSuchPoint-JustForTest.com/upload',
-      autoSaveAfterUploaded: true
+      saveFormAfterUploaded: true
     };
 
     var saved = false;
-    $rootScope.$on('', function() {
+    $rootScope.$on('rdsSchemaFormCtrl.save', function() {
       saved = true;
     });
 
@@ -117,6 +117,7 @@ describe('schema-form-file\'s ngSchemaFileController', function() {
     expect($scope.initInternalModel).toBeDefined();
     expect($scope.selectFile).toBeDefined();
     expect($scope.uploadFile).toBeDefined();
+    expect(saved).toBe(true);
   });
 
   // it('can $emit a "rdsSchemaFormCtrl.save" event if form.autoSaveAfterUploaded is true', function() {

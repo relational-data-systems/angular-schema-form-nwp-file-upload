@@ -48,9 +48,6 @@ describe('The schema-form-file plugin', function() {
     var element = $compile('<form sf-schema="schema" sf-form="form" sf-model="model"></form>')($scope);
     $rootScope.$apply();
 
-    console.log(element);
-    console.log(element.html());
-
     expect(element.children().length).toBe(1);
     expect(element.html()).toContain("schema-form-nwpFileUpload");
 
@@ -83,3 +80,31 @@ describe('schema-form-file\'s ngSchemaFileController', function() {
   });
 
 });
+
+describe('ngSchemaFile directive', function() {
+  beforeEach(angular.mock.module('schemaForm'));
+  beforeEach(angular.mock.module('ngSchemaFormFile'));
+
+  var $compile,
+      $rootScope;
+
+  beforeEach(inject(function(_$compile_, _$rootScope_){
+    $compile = _$compile_;
+    $rootScope = _$rootScope_;
+  }));
+
+  it('can $emit a "rdsSchemaFormCtrl.save" event if form.autoSaveAfterUploaded is true', function() {
+    var $scope = $rootScope.$new();
+    $scope.testModel = {};
+
+    var element = $compile('<ng-form class="file-upload mb-lg" ng-schema-file ng-model="testModel" ng-init="initInternalModel(testModel)" ng-model="$$value$$" name="uploadForm">')($scope);
+
+    var childScopeCreated = element.scope();
+    expect(childScopeCreated.$parent).toBe($scope);
+    expect(childScopeCreated.selectFile).toBeDefined();
+
+    
+
+  });
+});
+

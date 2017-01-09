@@ -95,14 +95,18 @@ angular
            $scope.picFile.type = model.type;
         }
      };
+
+
+     
+     
   }])
   .directive('ngSchemaFile', ['Upload', '$timeout', '$q', function (Upload, $timeout, $q) {
      return {
         restrict: 'A',
-        scope:    true,
+        scope: true,
         controller: 'ngSchemaFileController',
-        require:  'ngModel',
-        link:     function (scope, element, attrs, ngModel) {
+        require: 'ngModel',
+        link: function (scope, element, attrs, ngModel) {
           scope.url = scope.form && scope.form.endpoint;
           scope.isSinglefileUpload = scope.form && scope.form.schema && scope.form.schema.format === 'singlefile';
 
@@ -220,16 +224,16 @@ angular
           scope.$on('schemaFormFileUploadSubmit', scope.submit);
      
           function toggleValidationFileMetadataComponents(required) {
-            var fieldToWatch = ""
+            var fieldToWatch = "";
             var next = scope.$$prevSibling;
             while(next && next.form && next.form.key && next.form.key.join('.').startsWith(scope.form.key.join('.'))) {
               next.form.required = required;          
               next.$broadcast("schemaFormValidate");
-              fieldToWatch +="model."+next.form.key.join('.')+"&&";
+              fieldToWatch += "model." + next.form.key.join('.') + "&&";
               next = next.$$prevSibling;            
             }
-            if(fieldToWatch.length>0) {
-              fieldToWatch = fieldToWatch.substring(0,fieldToWatch.length-2);
+            if(fieldToWatch.length > 0) {
+              fieldToWatch = fieldToWatch.substring(0, fieldToWatch.length - 2);
             }
             scope.fieldToWatch = fieldToWatch;
           }

@@ -61,5 +61,5 @@ gulp.task('test', function(done) {
   new KarmaServer({
     configFile: settings.karmaConfig,
     singleRun: true
-  }, done).start()
+  }, done).start();
 });

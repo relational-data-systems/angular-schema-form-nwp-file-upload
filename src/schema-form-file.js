@@ -111,9 +111,9 @@ angular
           var expr = "evalExpr('"+scope.fieldToWatch+"',{ model: model, 'arrayIndex': 0, 'modelValue': ''})";
           scope.removeWatchForRequireMetadata = scope.$watch(expr, function(value) {
             if(!value) {
-              scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata', null, false);
+              scope.$broadcast('schemaForm.error.' + scope.getModelPath().join('.'), 'requireMetadata', null, false);
             } else {
-              scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata', null, true);
+              scope.$broadcast('schemaForm.error.' + scope.getModelPath().join('.'), 'requireMetadata', null, true);
             }
           });
         }

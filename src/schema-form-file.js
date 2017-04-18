@@ -59,13 +59,21 @@ angular
                 return f;
              }
           };
+
           schemaFormProvider.defaults.array.unshift(nwpMultifileUpload);
+
+          var ngModelOptions = sfBuilderProvider.builders.ngModelOptions;
+          var ngModel = sfBuilderProvider.builders.ngModel;
+          var sfField = sfBuilderProvider.builders.sfField;
+          var condition = sfBuilderProvider.builders.condition;
+          var complexValidation = sfBuilderProvider.builders.complexValidation;
+          var defaults = [sfField, ngModel, ngModelOptions, condition, complexValidation];
+
           schemaFormDecoratorsProvider.defineAddOn(
               'bootstrapDecorator',
               'nwpFileUpload',
               'directives/decorators/bootstrap/nwp-file/nwp-file.html',
-              // defaults
-              sfBuilderProvider.stdBuilders
+              defaults
           );
 
        }

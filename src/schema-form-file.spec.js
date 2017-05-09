@@ -25,20 +25,8 @@ describe('The schema-form-file plugin', function () {
         'file': {
           'type': 'object',
           'format': 'singlefile',
-          'pattern': {
-            'mimeType': '*'
-          },
-          'maxSize': {
-            'maximum': '2MB',
-            'validationMessage': 'File size should be no larger than 2MB'
-          },
-          'maxItems': {
-            'validationMessage': ''
-          },
-          'minItems': {
-            'validationMessage': ''
-          },
-          'properties': {}
+          'mimeType': '*',
+          'maxSize': '2MB'
         }
       }
     };

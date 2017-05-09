@@ -29,13 +29,9 @@ function prepareTemplates () {
 gulp.task('build-app-dev', function () {
   return gulp.src('./src/schema-form-file.js')
         // .pipe(concat your app js files somehow)
-        .pipe(sourcemaps.init())
-
         // append the template js onto one file
         .pipe(addStream.obj(prepareTemplates()))
         .pipe(concat('schema-form-file.js'))
-
-        .pipe(sourcemaps.write())
         .pipe(header(banner, { bower: bower }))
         .pipe(gulp.dest('./dist'));
 });
@@ -43,14 +39,18 @@ gulp.task('build-app-dev', function () {
 gulp.task('build-app-prod', function () {
   return gulp.src('./src/schema-form-file.js')
         // .pipe(concat your app js files somehow)
-
+        // .pipe(sourcemaps.init())
         // append the template js onto one file
         .pipe(addStream.obj(prepareTemplates()))
         .pipe(concat('schema-form-file.min.js'))
-
         .pipe(uglify())
+        // .pipe(sourcemaps.write('.'))
         .pipe(header(banner, { bower: bower }))
         .pipe(gulp.dest('./dist'));
 });
 
 gulp.task('default', ['build-app-dev', 'build-app-prod']);
+
+gulp.task('watch', function () {
+  gulp.watch('./src/**/*', ['default']);
+});

@@ -27,14 +27,7 @@
              ng-disabled="ngModel.$error.requireMetadata||!picFile || picFile.result || picFile.$error">{{ !picFile.result ?  "buttons.upload" : "buttons.uploaded" | translate }}
      </button>
      <button class="btn btn-danger btn-sm" type="button" ng-click="removeFile(picFile)"
-             ng-disabled="!picFile || picFile.$error">{{ "buttons.remove" | translate }}
+             ng-disabled="!picFile">{{ "buttons.remove" | translate }}
      </button>
   </div>
-</div>
-<div ng-messages="uploadForm.$error" ng-messages-multiple="">
-  <div class="text-danger errorMsg" ng-message="maxSize">{{ form.validationMessage[picFile.$error] | translate }} <strong>{{picFile.$errorParam}}</strong>. (<strong>{{picFile.size / 1000000|number:1}}MB</strong>)</div>
-  <div class="text-danger errorMsg" ng-message="mimeType">{{ form.validationMessage[picFile.$error] | translate }} <strong>{{picFile.$errorParam}}</strong></div>
-  <div class="text-danger errorMsg" ng-message="maxItems">{{ form.validationMessage[picFile.$error] | translate }} <strong>{{picFile.$errorParam}}</strong></div>
-  <div class="text-danger errorMsg" ng-message="minItems">{{ form.validationMessage[picFile.$error] | translate }} <strong>{{picFile.$errorParam}}</strong></div>
-  <div class="text-danger errorMsg" ng-show="errorMsg">{{errorMsg}}</div>
 </div>

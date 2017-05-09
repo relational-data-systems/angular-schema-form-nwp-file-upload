@@ -10,10 +10,10 @@
 <div ngf-no-file-drop>{{ 'modules.upload.dndNotSupported' | translate}}</div>
 
 <button ngf-select="selectFiles(picFiles)" type="file" ngf-multiple="true" multiple ng-model="picFiles" name="files"
-       accept="{{form.schema.mimeType}}"
        ng-attr-ngf-mimeType="{{form.schema.mimeType ? form.schema.mimeType : undefined }}"
        ng-attr-ngf-max-size="{{form.schema.maxSize ? form.schema.maxSize : undefined }}"
        ng-required="form.required"
+       accept="{{form.schema.mimeType}}"
        ng-model-options="form.ngModelOptions" id="fileInputButton"
        class="btn btn-primary btn-block {{form.htmlClass}} mt-lg mb">
   <fa fw="fw" name="upload" class="mr-sm"></fa>

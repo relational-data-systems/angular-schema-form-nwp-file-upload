@@ -1,47 +1,47 @@
-describe('The schema-form-file plugin', function() {
+describe('The schema-form-file plugin', function () {
   beforeEach(angular.mock.module('schemaForm'));
   beforeEach(angular.mock.module('ngSchemaFormFile'));
 
   var $compile,
-      $rootScope;
+    $rootScope;
 
-  beforeEach(inject(function(_$compile_, _$rootScope_){
+  beforeEach(inject(function (_$compile_, _$rootScope_) {
     $compile = _$compile_;
     $rootScope = _$rootScope_;
   }));
 
-  it('can generate a file upload component in an angular-schema-form', function() {
+  it('can generate a file upload component in an angular-schema-form', function () {
     var $scope = $rootScope.$new();
     $scope.form = [{
-      "key": "test-file-key",
-      "type": "nwpFileUpload",
-      "title": "Single File Upload",
-      "endpoint": "http://localhost:9999/schemaformbuilder/attachment/upload"
+      'key': 'test-file-key',
+      'type': 'nwpFileUpload',
+      'title': 'Single File Upload',
+      'endpoint': 'http://localhost:9999/schemaformbuilder/attachment/upload'
     }];
 
     $scope.schema = {
-      "type": "object",
-      "properties": {
-        "file": {
-          "type": "object",
-          "format": "singlefile",
-          "pattern": {
-            "mimeType": "*"
+      'type': 'object',
+      'properties': {
+        'file': {
+          'type': 'object',
+          'format': 'singlefile',
+          'pattern': {
+            'mimeType': '*'
           },
-          "maxSize": {
-            "maximum": "2MB",
-            "validationMessage": "File size should be no larger than 2MB"
+          'maxSize': {
+            'maximum': '2MB',
+            'validationMessage': 'File size should be no larger than 2MB'
           },
-          "maxItems": {
-            "validationMessage": ""
+          'maxItems': {
+            'validationMessage': ''
           },
-          "minItems": {
-            "validationMessage": ""
+          'minItems': {
+            'validationMessage': ''
           },
-          "properties": {}
+          'properties': {}
         }
       }
-    }
+    };
 
     $scope.model = {};
 
@@ -49,7 +49,7 @@ describe('The schema-form-file plugin', function() {
     $rootScope.$apply();
 
     expect(element.children().length).toBe(1);
-    expect(element.html()).toContain("schema-form-nwpFileUpload");
+    expect(element.html()).toContain('schema-form-nwpFileUpload');
 
     // tmpl.children().length.should.be.equal(2);
     // tmpl.children().eq(0).is('div.form-group').should.be.true;
@@ -60,28 +60,28 @@ describe('The schema-form-file plugin', function() {
   });
 });
 
-describe('schema-form-file\'s ngSchemaFileController', function() {
+describe('schema-form-file\'s ngSchemaFileController', function () {
   // beforeEach(angular.mock.module('schemaForm'));
   beforeEach(angular.mock.module('ngSchemaFormFile'));
 
   var $compile,
-      $controller,
-      $rootScope,
-      $httpBackend;
+    $controller,
+    $rootScope,
+    $httpBackend;
 
-  beforeEach(inject(function(_$compile_, _$controller_, _$rootScope_, _$httpBackend_) { // The injector unwraps the underscores (_) from around the parameter names when matching
+  beforeEach(inject(function (_$compile_, _$controller_, _$rootScope_, _$httpBackend_) { // The injector unwraps the underscores (_) from around the parameter names when matching
     $compile = _$compile_;
     $controller = _$controller_;
     $rootScope = _$rootScope_;
     $httpBackend = _$httpBackend_;
   }));
 
-  afterEach(function() {
-     $httpBackend.verifyNoOutstandingExpectation();
-     $httpBackend.verifyNoOutstandingRequest();
+  afterEach(function () {
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
   });
 
-  it('can upload', function() {
+  it('can upload', function () {
     var $scope = $rootScope.$new();
     $scope.form = {
       endpoint: 'http://noSuchPoint-JustForTest.com/upload',
@@ -89,21 +89,21 @@ describe('schema-form-file\'s ngSchemaFileController', function() {
     };
 
     var saveEventFired = false;
-    $rootScope.$on('rdsSchemaFormCtrl.save', function() {
+    $rootScope.$on('rdsSchemaFormCtrl.save', function () {
       saveEventFired = true;
     });
 
     var expectedResponse = {
-      "id": "1",
-      "name": "testFile.png",
-      "type": "image/png"
-    }
+      'id': '1',
+      'name': 'testFile.png',
+      'type': 'image/png'
+    };
 
     $httpBackend.whenPOST($scope.form.endpoint).respond(200, expectedResponse);
     // var mockFileToUpload = {"name": "1.html", "size": 1024, "type": "text/html"};
-    var blob = new Blob([""], { type: 'text/html' });
-    blob["lastModifiedDate"] = "";
-    blob["name"] = "1.html";
+    var blob = new Blob([''], { type: 'text/html' });
+    blob['lastModifiedDate'] = '';
+    blob['name'] = '1.html';
     var mockFileToUpload = blob;
 
     var ngSchemaFileController = $controller('ngSchemaFileController', {$scope: $scope});
@@ -121,24 +121,23 @@ describe('schema-form-file\'s ngSchemaFileController', function() {
   });
 
   // it('can $emit a "rdsSchemaFormCtrl.save" event if form.autoSaveAfterUploaded is true', function() {
-    
-  // });
 
+  // });
 });
 
-describe('ngSchemaFile directive', function() {
+describe('ngSchemaFile directive', function () {
   beforeEach(angular.mock.module('schemaForm'));
   beforeEach(angular.mock.module('ngSchemaFormFile'));
 
   var $compile,
-      $rootScope;
+    $rootScope;
 
-  beforeEach(inject(function(_$compile_, _$rootScope_){
+  beforeEach(inject(function (_$compile_, _$rootScope_) {
     $compile = _$compile_;
     $rootScope = _$rootScope_;
   }));
 
-  it('can generate a proper child scope', function() {
+  it('can generate a proper child scope', function () {
     var $scope = $rootScope.$new();
     $scope.testModel = {};
 
@@ -149,4 +148,3 @@ describe('ngSchemaFile directive', function() {
     expect(childScopeCreated.selectFile).toBeDefined();
   });
 });
-

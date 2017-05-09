@@ -1,7 +1,7 @@
 var fs = require('fs'),
   tasks = fs.readdirSync('./gulp/tasks'),
   gulp = require('gulp'),
-  notify = require("gulp-notify"),
+  notify = require('gulp-notify'),
   argv = require('yargs').argv;
 
 global.handleErrors = function () {
@@ -10,16 +10,16 @@ global.handleErrors = function () {
   // Send error to notification center with gulp-notify
   if (notification) {
     notify.onError({
-      title: "Gulp Build",
-      subtitle: "Failure!",
-      message: "Error: <%= error.message %>",
-      sound: "Beep"
+      title: 'Gulp Build',
+      subtitle: 'Failure!',
+      message: 'Error: <%= error.message %>',
+      sound: 'Beep'
     }).apply(this, args);
   }
   // Keep gulp from hanging on this task
   this.emit('end');
 };
 
-tasks.forEach(function(task) {
+tasks.forEach(function (task) {
   require('./tasks/' + task);
 });

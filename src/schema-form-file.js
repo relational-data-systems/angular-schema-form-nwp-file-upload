@@ -56,7 +56,7 @@ angular
       schemaFormDecoratorsProvider.defineAddOn(
             'bootstrapDecorator',
             'nwpFileUpload',
-            'directives/decorators/bootstrap/nwp-file/nwp-file.html',
+            'directives/decorators/bootstrap/nwp-file/schema-form-file.html',
             // defaults
             sfBuilderProvider.stdBuilders
         );

@@ -11,14 +11,15 @@ angular
   .config(['schemaFormProvider', 'schemaFormDecoratorsProvider', 'sfPathProvider', 'sfBuilderProvider',
     function (schemaFormProvider, schemaFormDecoratorsProvider, sfPathProvider, sfBuilderProvider) {
       var _defaultSingleFileUploadValidationErrorMessages = {
-        'mimeType': 'Wrong file type. Allowed types are ',
-        'maxSize': 'This file is too large. Maximum size allowed is '
+        'maxSize': 'This file is too large ({{picFile.size / 1000000 | number:1}}MB). Maximum size allowed is {{schema.maxSize}}',
+        'mimeType': 'Wrong file type. Allowed types are {{schema.mimeType}}'
       };
+
       var _defaultMultiFileUploadValidationErrorMessages = {
-        'mimeType': 'Wrong file type. Allowed types are ',
-        'maxSize': 'This file is too large. Maximum size allowed is ',
-        'minItems': 'You have to upload at least one file',
-        'maxItems': 'You can\'t upload more than one file.'
+        'maxSize': _defaultSingleFileUploadValidationErrorMessages.maxSize,
+        'mimeType': _defaultSingleFileUploadValidationErrorMessages.mimeType,
+        'minItems': 'You have to upload at least {{schema.minItems}} file(s)',
+        'maxItems': 'You can\'t upload more than {{schema.maxItems}} file(s).'
       };
 
       function _applyDefaultValidationErrorMessages (form, schema, messagesObject) {
@@ -74,11 +75,11 @@ angular
   'ngFileUpload',
   'ngMessages'
 ])
-.controller('ngSchemaFileController', ['$scope', 'Upload', '$timeout', '$q', function ($scope, Upload, $timeout, $q) {
+.controller('ngSchemaFileController', ['$scope', 'Upload', '$interpolate', '$translate', '$timeout', '$q', function ($scope, Upload, $interpolate, $translate, $timeout, $q) {
   var vm = this;
 
-  var scope = null,
-    ngModel = null;
+  var scope = null;
+  var ngModel = null;
 
   vm.init = init;
 
@@ -228,6 +229,23 @@ angular
       $scope.picFile.type = model.type;
     }
   };
+
+  $scope.interpValidationMessage = function (picFile) {
+    var error = picFile.$error; // e.g., 'maxSize'
+    var form = scope.form;
+    var message = form.validationMessage[error];
+
+    var context = {
+      error: error,
+      file: picFile,
+      form: form,
+      schema: form.schema,
+      title: form.title || (form.schema && form.schema.title)
+    };
+    var interpolatedMessage = $interpolate(message)(context);
+
+    return $translate.instant(interpolatedMessage);
+  };
 }])
 .directive('ngSchemaFile', function () {
   return {
@@ -243,7 +261,7 @@ angular
 });
 
 angular.module("schemaForm").run(["$templateCache", function($templateCache) {$templateCache.put("directives/decorators/bootstrap/nwp-file/schema-form-file.html","<ng-form class=\"file-upload mb-lg\" ng-schema-file schema-validate=\"form\" sf-field-model=\"replaceAll\" ng-init=\"initInternalModel($$value$$)\" ng-model=\"$$value$$\" name=\"uploadForm\">\n  <label ng-show=\"form.title && form.notitle !== true\" class=\"control-label\" for=\"fileInputButton\" ng-class=\"{\'sr-only\': !showTitle(), \'text-danger\': uploadForm.$error.required && !uploadForm.$pristine}\">\n    {{ form.title }}<i ng-show=\"form.required\">&nbsp;*</i>\n  </label>\n\n  <div ng-show=\"picFile\" class=\"well well-sm bg-white mb\" ng-class=\"{\'has-error border-danger\': (uploadForm.$error.required && !uploadForm.$pristine) || (hasError() && errorMessage(schemaError()))}\">\n    <div ng-include=\"\'directives/decorators/bootstrap/nwp-file/schema-form-file.template.progress.html\'\" class=\"mb\"></div>\n    <div ng-include=\"\'directives/decorators/bootstrap/nwp-file/schema-form-file.template.errors.html\'\" class=\"mb\"></div>\n    <span class=\"help-block\" sf-message=\"form.description\"></span>\n  </div>\n\n  <ul ng-show=\"picFiles && picFiles.length\" class=\"list-group\">\n    <li class=\"list-group-item\" ng-repeat=\"picFile in picFiles\">\n      <div ng-include=\"\'directives/decorators/bootstrap/nwp-file/schema-form-file.template.progress.html\'\"></div>\n      <div ng-include=\"\'directives/decorators/bootstrap/nwp-file/schema-form-file.template.errors.html\'\" class=\"mb\"></div>\n    </li>\n  </ul>\n\n  <div ng-show=\"(isSinglefileUpload && !picFile) || (!isSinglefileUpload && (!picFiles || !picFiles.length))\" class=\"well well-sm bg-white mb\" ng-class=\"{\'has-error border-danger\': (uploadForm.$error.required && !uploadForm.$pristine) || (hasError() && errorMessage(schemaError()))}\">\n    <small class=\"text-muted\" ng-show=\"form.description\" ng-bind-html=\"form.description\"></small>\n    <div ng-if=\"isSinglefileUpload\" ng-include=\"\'directives/decorators/bootstrap/nwp-file/schema-form-file.template.single.html\'\"></div>\n    <div ng-if=\"!isSinglefileUpload\" ng-include=\"\'directives/decorators/bootstrap/nwp-file/schema-form-file.template.multiple.html\'\"></div>\n    <!--<div class=\"help-block mb0\" ng-show=\"uploadForm.$error.required && !uploadForm.$pristine\">{{ \'modules.attribute.fields.required.caption\' | translate }}</div>-->\n    <span class=\"help-block\" sf-message=\"form.description\"></span>\n  </div>\n</ng-form>\n");
-$templateCache.put("directives/decorators/bootstrap/nwp-file/schema-form-file.template.errors.html","<div ng-messages=\"uploadForm.$error\" ng-messages-multiple=\"\">\n  <div class=\"text-danger errorMsg\" ng-message=\"maxSize\">{{ form.validationMessage[picFile.$error] | translate }} <strong>{{picFile.$errorParam}}</strong>. (<strong>{{picFile.size / 1000000|number:1}}MB</strong>)</div>\n  <div class=\"text-danger errorMsg\" ng-message=\"mimeType\">{{ form.validationMessage[picFile.$error] | translate }} <strong>{{picFile.$errorParam}}</strong></div>\n  <div class=\"text-danger errorMsg\" ng-message=\"maxItems\">{{ form.validationMessage[picFile.$error] | translate }} <strong>{{picFile.$errorParam}}</strong></div>\n  <div class=\"text-danger errorMsg\" ng-message=\"minItems\">{{ form.validationMessage[picFile.$error] | translate }} <strong>{{picFile.$errorParam}}</strong></div>\n  <div class=\"text-danger errorMsg\" ng-show=\"errorMsg\">{{errorMsg}}</div>\n</div>");
+$templateCache.put("directives/decorators/bootstrap/nwp-file/schema-form-file.template.errors.html","<div ng-messages=\"uploadForm.$error\" ng-messages-multiple=\"\">\n  <div class=\"text-danger errorMsg\" ng-message=\"maxSize\">{{ interpValidationMessage(picFile) }}</div>\n  <div class=\"text-danger errorMsg\" ng-message=\"mimeType\">{{ interpValidationMessage(picFile) }}</div>\n  <div class=\"text-danger errorMsg\" ng-message=\"maxItems\">{{ interpValidationMessage(picFile) }}</div>\n  <div class=\"text-danger errorMsg\" ng-message=\"minItems\">{{ interpValidationMessage(picFile) }}</div>\n  <div class=\"text-danger errorMsg\" ng-show=\"errorMsg\">{{ errorMsg }}</div>\n</div>");
 $templateCache.put("directives/decorators/bootstrap/nwp-file/schema-form-file.template.multiple.html","<div ngf-drop=\"selectFiles(picFiles)\" ngf-select=\"selectFiles(picFiles)\" type=\"file\" ngf-multiple=\"true\"\n    ng-model=\"picFiles\" name=\"files\"\n    ng-attr-ngf-mimeType=\"{{form.schema.mimeType ? form.schema.mimeType : undefined }}\"\n    ng-attr-ngf-max-size=\"{{form.schema.maxSize ? form.schema.maxSize : undefined }}\"\n    ng-required=\"form.required\"\n    accept=\"{{form.schema.mimeType}}\"\n    ng-model-options=\"form.ngModelOptions\" ngf-drag-over-class=\"dragover\" class=\"drop-box dragAndDropDescription\">\n  <p class=\"text-center\">{{ \'modules.upload.descriptionMultifile\' | translate }}</p>\n</div>\n<div ngf-no-file-drop>{{ \'modules.upload.dndNotSupported\' | translate}}</div>\n\n<button ngf-select=\"selectFiles(picFiles)\" type=\"file\" ngf-multiple=\"true\" multiple ng-model=\"picFiles\" name=\"files\"\n       ng-attr-ngf-mimeType=\"{{form.schema.mimeType ? form.schema.mimeType : undefined }}\"\n       ng-attr-ngf-max-size=\"{{form.schema.maxSize ? form.schema.maxSize : undefined }}\"\n       ng-required=\"form.required\"\n       accept=\"{{form.schema.mimeType}}\"\n       ng-model-options=\"form.ngModelOptions\" id=\"fileInputButton\"\n       class=\"btn btn-primary btn-block {{form.htmlClass}} mt-lg mb\">\n  <fa fw=\"fw\" name=\"upload\" class=\"mr-sm\"></fa>\n  {{ \"buttons.add\" | translate }}\n</button>\n");
-$templateCache.put("directives/decorators/bootstrap/nwp-file/schema-form-file.template.progress.html","<div class=\"row mb\">\n  <div class=\"col-sm-4 mb-sm\">\n     <label title=\"{{ \'modules.upload.field.preview\' | translate }}\" class=\"text-info\">{{\n        \'modules.upload.field.preview\' | translate }}</label>\n     <img ngf-src=\"picFile\" class=\"img-thumbnail img-responsive\">\n     <div class=\"img-placeholder\"\n          ng-class=\"{\'show\': picFile.$invalid && !picFile.blobUrl, \'hide\': !picFile || picFile.blobUrl}\">No preview\n        available\n     </div>\n  </div>\n  <div class=\"col-sm-4 mb-sm\">\n     <label title=\"{{ \'modules.upload.field.filename\' | translate }}\" class=\"text-info\">{{\n        \'modules.upload.field.filename\' | translate }}</label>\n     <div class=\"filename\" title=\"{{ picFile.name }}\">{{ picFile.name }}</div>\n  </div>\n  <div class=\"col-sm-4 mb-sm\">\n     <label title=\"{{ \'modules.upload.field.progress\' | translate }}\" class=\"text-info\">{{\n        \'modules.upload.field.progress\' | translate }}</label>\n     <div class=\"progress\">\n        <div class=\"progress-bar progress-bar-striped\" role=\"progressbar\"\n             ng-class=\"{\'progress-bar-success\': picFile.progress == 100}\"\n             ng-style=\"{width: picFile.progress + \'%\'}\">\n           {{ picFile.progress }} %\n        </div>\n     </div>\n     <button class=\"btn btn-primary btn-sm\" type=\"button\" ng-click=\"uploadFile(picFile)\"\n             ng-disabled=\"ngModel.$error.requireMetadata||!picFile || picFile.result || picFile.$error\">{{ !picFile.result ?  \"buttons.upload\" : \"buttons.uploaded\" | translate }}\n     </button>\n     <button class=\"btn btn-danger btn-sm\" type=\"button\" ng-click=\"removeFile(picFile)\"\n             ng-disabled=\"!picFile\">{{ \"buttons.remove\" | translate }}\n     </button>\n  </div>\n</div>\n");
+$templateCache.put("directives/decorators/bootstrap/nwp-file/schema-form-file.template.progress.html","<div class=\"row mb\">\n  <div class=\"col-sm-4 mb-sm\">\n     <label title=\"{{ \'modules.upload.field.preview\' | translate }}\" class=\"text-info\">{{\n        \'modules.upload.field.preview\' | translate }}</label>\n     <img ngf-src=\"picFile\" class=\"img-thumbnail img-responsive\">\n     <div class=\"img-placeholder\"\n          ng-class=\"{\'show\': picFile.$invalid && !picFile.blobUrl, \'hide\': !picFile || picFile.blobUrl}\">No preview available\n     </div>\n  </div>\n  <div class=\"col-sm-4 mb-sm\">\n     <label title=\"{{ \'modules.upload.field.filename\' | translate }}\" class=\"text-info\">{{\n        \'modules.upload.field.filename\' | translate }}</label>\n     <div class=\"filename\" title=\"{{ picFile.name }}\">{{ picFile.name }}</div>\n  </div>\n  <div class=\"col-sm-4 mb-sm\">\n     <label title=\"{{ \'modules.upload.field.progress\' | translate }}\" class=\"text-info\">{{\n        \'modules.upload.field.progress\' | translate }}</label>\n     <div class=\"progress\">\n        <div class=\"progress-bar progress-bar-striped\" role=\"progressbar\"\n             ng-class=\"{\'progress-bar-success\': picFile.progress == 100}\"\n             ng-style=\"{width: picFile.progress + \'%\'}\">\n           {{ picFile.progress }} %\n        </div>\n     </div>\n     <button class=\"btn btn-primary btn-sm\" type=\"button\" ng-click=\"uploadFile(picFile)\"\n             ng-disabled=\"ngModel.$error.requireMetadata||!picFile || picFile.result || picFile.$error\">{{ !picFile.result ?  \"buttons.upload\" : \"buttons.uploaded\" | translate }}\n     </button>\n     <button class=\"btn btn-danger btn-sm\" type=\"button\" ng-click=\"removeFile(picFile)\"\n             ng-disabled=\"!picFile\">{{ \"buttons.remove\" | translate }}\n     </button>\n  </div>\n</div>\n");
 $templateCache.put("directives/decorators/bootstrap/nwp-file/schema-form-file.template.single.html","<div ngf-drop=\"selectFile(picFile)\" ngf-select=\"selectFile(picFile)\" type=\"file\" ngf-multiple=\"false\"\n    ng-model=\"picFile\" name=\"file\"\n    ng-attr-ngf-mimeType=\"{{form.schema.mimeType ? form.schema.mimeType : undefined }}\"\n    ng-attr-ngf-max-size=\"{{form.schema.maxSize ? form.schema.maxSize : undefined }}\"\n    ng-required=\"form.required\"\n    accept=\"{{form.schema.mimeType}}\"\n    ng-model-options=\"form.ngModelOptions\" ngf-drag-over-class=\"dragover\" class=\"drop-box dragAndDropDescription\">\n  <p class=\"text-center\">{{ \'modules.upload.descriptionSinglefile\' | translate }}</p>\n</div>\n<div ngf-no-file-drop>{{ \'modules.upload.dndNotSupported\' | translate}}</div>\n\n<button ngf-select=\"selectFile(picFile)\" type=\"file\" ngf-multiple=\"false\" ng-model=\"picFile\" name=\"file\"\n       ng-attr-ngf-mimeType=\"{{form.schema.mimeType ? form.schema.mimeType : undefined }}\"\n       ng-attr-ngf-max-size=\"{{form.schema.maxSize ? form.schema.maxSize : undefined }}\"\n       ng-required=\"form.required\"\n       accept=\"{{form.schema.mimeType}}\"\n       ng-model-options=\"form.ngModelOptions\" id=\"fileInputButton\"\n       class=\"btn btn-primary btn-block {{form.htmlClass}} mt-lg mb\">\n  <fa fw=\"fw\" name=\"upload\" class=\"mr-sm\"></fa>\n  {{ \"buttons.add\" | translate }}\n</button>\n");}]);

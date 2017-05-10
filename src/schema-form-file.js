@@ -4,66 +4,59 @@ angular
   .module('schemaForm')
   .config(['schemaFormProvider', 'schemaFormDecoratorsProvider', 'sfPathProvider', 'sfBuilderProvider',
     function (schemaFormProvider, schemaFormDecoratorsProvider, sfPathProvider, sfBuilderProvider) {
-      var defaultPatternMsg = 'Wrong file type. Allowed types are ',
-        defaultMaxSizeMsg1 = 'This file is too large. Maximum size allowed is ',
-        defaultMaxSizeMsg2 = 'Current file size:',
-        defaultMinItemsMsg = 'You have to upload at least one file',
-        defaultMaxItemsMsg = 'You can\'t upload more than one file.';
-
-      var nwpSinglefileUpload = function (name, schema, options) {
-        if (schema.type === 'array' && schema.format === 'singlefile') {
-          if (schema.pattern && schema.pattern.mimeType && !schema.pattern.validationMessage) {
-            schema.pattern.validationMessage = defaultPatternMsg;
-          }
-          if (schema.maxSize && schema.maxSize.maximum && !schema.maxSize.validationMessage) {
-            schema.maxSize.validationMessage = defaultMaxSizeMsg1;
-            schema.maxSize.validationMessage2 = defaultMaxSizeMsg2;
-          }
-          if (schema.minItems && schema.minItems.minimum && !schema.minItems.validationMessage) {
-            schema.minItems.validationMessage = defaultMinItemsMsg;
-          }
-          if (schema.maxItems && schema.maxItems.maximum && !schema.maxItems.validationMessage) {
-            schema.maxItems.validationMessage = defaultMaxItemsMsg;
-          }
-
-          var f = schemaFormProvider.stdFormObj(name, schema, options);
-          f.key = options.path;
-          f.type = 'nwpFileUpload';
-          options.lookup[sfPathProvider.stringify(options.path)] = f;
-          return f;
-        }
+      var _defaultSingleFileUploadValidationErrorMessages = {
+        'mimeType': 'Wrong file type. Allowed types are ',
+        'maxSize': 'This file is too large. Maximum size allowed is '
+      };
+      var _defaultMultiFileUploadValidationErrorMessages = {
+        'mimeType': 'Wrong file type. Allowed types are ',
+        'maxSize': 'This file is too large. Maximum size allowed is ',
+        'minItems': 'You have to upload at least one file',
+        'maxItems': 'You can\'t upload more than one file.'
       };
 
-      schemaFormProvider.defaults.array.unshift(nwpSinglefileUpload);
-
-      var nwpMultifileUpload = function (name, schema, options) {
-        if (schema.type === 'array' && schema.format === 'multifile') {
-          if (schema.pattern && schema.pattern.mimeType && !schema.pattern.validationMessage) {
-            schema.pattern.validationMessage = defaultPatternMsg;
+      function _applyDefaultValidationErrorMessages (form, schema, messagesObject) {
+        form.validationMessage = form.validationMessage || {};
+        for (var keyword in messagesObject) {
+          if (schema[keyword] && !form.validationMessage[keyword]) {
+            form.validationMessage[keyword] = messagesObject[keyword];
           }
-          if (schema.maxSize && schema.maxSize.maximum && !schema.maxSize.validationMessage) {
-            schema.maxSize.validationMessage = defaultMaxSizeMsg1;
-            schema.maxSize.validationMessage2 = defaultMaxSizeMsg2;
-          }
-          if (schema.minItems && schema.minItems.minimum && !schema.minItems.validationMessage) {
-            schema.minItems.validationMessage = defaultMinItemsMsg;
-          }
-          if (schema.maxItems && schema.maxItems.maximum && !schema.maxItems.validationMessage) {
-            schema.maxItems.validationMessage = defaultMaxItemsMsg;
-          }
-
-          var f = schemaFormProvider.stdFormObj(name, schema, options);
-          f.key = options.path;
-          f.type = 'nwpFileUpload';
-          options.lookup[sfPathProvider.stringify(options.path)] = f;
-          return f;
         }
-      };
-      schemaFormProvider.defaults.array.unshift(nwpMultifileUpload);
+      }
+
+      function registerDefaultTypes () {
+        function nwpSinglefileUploadDefaultProvider (name, schema, options) {
+          if (schema.type === 'object' && schema.format === 'singlefile') {
+            var f = schemaFormProvider.stdFormObj(name, schema, options);
+            f.key = options.path;
+            f.type = 'nwpFileUpload';
+            options.lookup[sfPathProvider.stringify(options.path)] = f;
+            _applyDefaultValidationErrorMessages(f, schema, _defaultSingleFileUploadValidationErrorMessages);
+            return f;
+          }
+        }
+
+        function nwpMultifileUploadDefaultProvider (name, schema, options) {
+          if (schema.type === 'array' && schema.format === 'multifile') {
+            var f = schemaFormProvider.stdFormObj(name, schema, options);
+            f.key = options.path;
+            f.type = 'nwpFileUpload';
+            options.lookup[sfPathProvider.stringify(options.path)] = f;
+            _applyDefaultValidationErrorMessages(f, schema, _defaultMultiFileUploadValidationErrorMessages);
+            return f;
+          }
+        }
+
+        schemaFormProvider.defaults.array.unshift(nwpSinglefileUploadDefaultProvider);
+        schemaFormProvider.defaults.array.unshift(nwpMultifileUploadDefaultProvider);
+      }
+
+      registerDefaultTypes();
+
       schemaFormDecoratorsProvider.defineAddOn(
             'bootstrapDecorator',
             'nwpFileUpload',
-            'directives/decorators/bootstrap/nwp-file/nwp-file.html',
+            'directives/decorators/bootstrap/nwp-file/schema-form-file.html',
             // defaults
             sfBuilderProvider.stdBuilders
         );
@@ -148,7 +141,7 @@ angular
         file.upload = Upload.upload({
           url: scope.url,
           file: file,
-          data: { metadata: ngModel.$modelValue}
+          data: {metadata: ngModel.$modelValue}
         });
 
         file.upload.then(function (response) {

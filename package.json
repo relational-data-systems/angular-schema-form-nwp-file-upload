@@ -8,6 +8,7 @@
   ],
   "devDependencies": {
     "add-stream": "^1.0.0",
+    "del": "^2.2.2",
     "gulp": "^3.9.0",
     "gulp-angular-filesort": "^1.1.1",
     "gulp-angular-templatecache": "^1.8.0",

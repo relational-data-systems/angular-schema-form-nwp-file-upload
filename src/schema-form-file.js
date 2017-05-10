@@ -5,7 +5,7 @@ angular
   .config(['schemaFormProvider', 'schemaFormDecoratorsProvider', 'sfPathProvider', 'sfBuilderProvider',
     function (schemaFormProvider, schemaFormDecoratorsProvider, sfPathProvider, sfBuilderProvider) {
       var _defaultSingleFileUploadValidationErrorMessages = {
-        'maxSize': 'This file is too large ({{picFile.size / 1000000 | number:1}}MB). Maximum size allowed is {{schema.maxSize}}',
+        'maxSize': 'This file is too large ({{file.size / 1000000 | number:1}}MB). Maximum size allowed is {{schema.maxSize}}',
         'mimeType': 'Wrong file type. Allowed types are {{schema.mimeType}}'
       };
 

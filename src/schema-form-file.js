@@ -5,14 +5,15 @@ angular
   .config(['schemaFormProvider', 'schemaFormDecoratorsProvider', 'sfPathProvider', 'sfBuilderProvider',
     function (schemaFormProvider, schemaFormDecoratorsProvider, sfPathProvider, sfBuilderProvider) {
       var _defaultSingleFileUploadValidationErrorMessages = {
-        'mimeType': 'Wrong file type. Allowed types are ',
-        'maxSize': 'This file is too large. Maximum size allowed is '
+        'maxSize': 'This file is too large ({{file.size / 1000000 | number:1}}MB). Maximum size allowed is {{schema.maxSize}}',
+        'mimeType': 'Wrong file type. Allowed types are {{schema.mimeType}}'
       };
+
       var _defaultMultiFileUploadValidationErrorMessages = {
-        'mimeType': 'Wrong file type. Allowed types are ',
-        'maxSize': 'This file is too large. Maximum size allowed is ',
-        'minItems': 'You have to upload at least one file',
-        'maxItems': 'You can\'t upload more than one file.'
+        'maxSize': _defaultSingleFileUploadValidationErrorMessages.maxSize,
+        'mimeType': _defaultSingleFileUploadValidationErrorMessages.mimeType,
+        'minItems': 'You have to upload at least {{schema.minItems}} file(s)',
+        'maxItems': 'You can\'t upload more than {{schema.maxItems}} file(s).'
       };
 
       function _applyDefaultValidationErrorMessages (form, schema, messagesObject) {
@@ -68,11 +69,11 @@ angular
   'ngFileUpload',
   'ngMessages'
 ])
-.controller('ngSchemaFileController', ['$scope', 'Upload', '$timeout', '$q', function ($scope, Upload, $timeout, $q) {
+.controller('ngSchemaFileController', ['$scope', 'Upload', '$interpolate', '$translate', '$timeout', '$q', function ($scope, Upload, $interpolate, $translate, $timeout, $q) {
   var vm = this;
 
-  var scope = null,
-    ngModel = null;
+  var scope = null;
+  var ngModel = null;
 
   vm.init = init;
 
@@ -221,6 +222,23 @@ angular
       $scope.picFile.size = 0;
       $scope.picFile.type = model.type;
     }
+  };
+
+  $scope.interpValidationMessage = function (picFile) {
+    var error = picFile.$error; // e.g., 'maxSize'
+    var form = scope.form;
+    var message = form.validationMessage[error];
+
+    var context = {
+      error: error,
+      file: picFile,
+      form: form,
+      schema: form.schema,
+      title: form.title || (form.schema && form.schema.title)
+    };
+    var interpolatedMessage = $interpolate(message)(context);
+
+    return $translate.instant(interpolatedMessage);
   };
 }])
 .directive('ngSchemaFile', function () {

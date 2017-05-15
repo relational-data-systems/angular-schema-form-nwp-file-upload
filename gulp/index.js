@@ -1,8 +1,9 @@
-var fs = require('fs'),
-  tasks = fs.readdirSync('./gulp/tasks'),
-  gulp = require('gulp'),
-  notify = require('gulp-notify'),
-  argv = require('yargs').argv;
+'use strict';
+
+var fs = require('fs');
+var tasks = fs.readdirSync('./gulp/tasks');
+var notify = require('gulp-notify');
+var argv = require('yargs').argv;
 
 global.handleErrors = function () {
   var args = Array.prototype.slice.call(arguments);
@@ -18,6 +19,14 @@ global.handleErrors = function () {
   }
   // Keep gulp from hanging on this task
   this.emit('end');
+};
+
+global.filepathForKarma = function (filepath, file, i, length) {
+  if (filepath.endsWith('.json')) {
+    return '{pattern: \'' + filepath + '\', watched: true, served: true, included: false},';
+  } else {
+    return '\'' + filepath + '\',';
+  }
 };
 
 tasks.forEach(function (task) {

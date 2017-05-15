@@ -1,16 +1,12 @@
-var gulp = require('gulp'),
-  KarmaServer = require('karma').Server,
-  inject = require('gulp-inject'),
-  bowerFiles = require('main-bower-files'),
-  runSequence = require('run-sequence'),
-  plumber = require('gulp-plumber'),
-  naturalSort = require('gulp-natural-sort'),
-  angularFilesort = require('gulp-angular-filesort'),
-  debug = require('gulp-debug');
-
-function filepathForKarma (filepath, file, i, length) {
-  return '"' + filepath + '",';
-}
+var gulp = require('gulp');
+var KarmaServer = require('karma').Server;
+var inject = require('gulp-inject');
+var bowerFiles = require('main-bower-files');
+var runSequence = require('run-sequence');
+var plumber = require('gulp-plumber');
+var naturalSort = require('gulp-natural-sort');
+var angularFilesort = require('gulp-angular-filesort');
+var debug = require('gulp-debug');
 
 gulp.task('inject-test:vendor', function () {
   var injectOptions = {
@@ -21,7 +17,7 @@ gulp.task('inject-test:vendor', function () {
     transform: filepathForKarma
   };
 
-  var stream = gulp.src(settings.karmaConfig)
+  var stream = gulp.src(settings.karmaConfigFile)
     .pipe(plumber({errorHandler: handleErrors}))
     .pipe(inject(
       gulp.src(
@@ -41,7 +37,7 @@ gulp.task('inject-test:asf-file-upload', function () {
     transform: filepathForKarma
   };
 
-  return gulp.src(settings.karmaConfig)
+  return gulp.src(settings.karmaConfigFile)
     .pipe(plumber({errorHandler: handleErrors}))
     .pipe(inject(
       gulp.src([settings.src + '**/*.js'])
@@ -58,7 +54,7 @@ gulp.task('inject-test', function () {
 
 gulp.task('test', function (done) {
   new KarmaServer({
-    configFile: settings.karmaConfig,
+    configFile: settings.karmaConfigFile,
     singleRun: true
   }, done).start();
 });

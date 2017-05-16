@@ -73,7 +73,8 @@ angular
 angular
 .module('ngSchemaFormFile', [
   'ngFileUpload',
-  'ngMessages'
+  'ngMessages',
+  'pascalprecht.translate'
 ])
 .controller('ngSchemaFileController', ['$scope', 'Upload', '$interpolate', '$translate', '$timeout', '$q', function ($scope, Upload, $interpolate, $translate, $timeout, $q) {
   var vm = this;

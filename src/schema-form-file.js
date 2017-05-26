@@ -167,12 +167,16 @@ angular
           }
         }, function (response) {
           if (response.status > 0) {
-            scope.errorMsg = response.status + ': ' + response.data;
+            scope.errorMsg = 'File Upload Failed!';
+            delete file.progress;
           }
         });
 
         file.upload.progress(function (evt) {
-          file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+          if (scope.errorMsg)
+            delete file.progress;
+          else
+            file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
         });
       }
     }

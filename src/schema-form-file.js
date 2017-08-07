@@ -70,7 +70,7 @@ angular
   'ngMessages',
   'pascalprecht.translate'
 ])
-.controller('ngSchemaFileController', ['$scope', 'Upload', '$interpolate', '$translate', '$timeout', '$q', function ($scope, Upload, $interpolate, $translate, $timeout, $q) {
+.controller('ngSchemaFileController', ['$scope', '$log', 'Upload', '$interpolate', '$translate', '$timeout', '$q', function ($scope, $log, Upload, $interpolate, $translate, $timeout, $q) {
   var vm = this;
 
   var scope = null;
@@ -102,6 +102,16 @@ angular
           }
         });
       }
+
+      if (scope.form && scope.form.autoUploadOnSelect === true) {
+        $timeout(function () {
+          if (ngModel.$valid) {
+            scope.uploadFile(file);
+          } else {
+            $log.debug('ngSchemaFileController#selectFile - ngModel is invlid, skip auto upload');
+          }
+        });
+      }
     };
 
     scope.selectFiles = function (files) {
@@ -122,6 +132,7 @@ angular
     // TODO: Need to communicate with server for deletion if the file is already uploaded.
     scope.removeFile = function () {
       if (scope.isSinglefileUpload) {
+        clearErrorMsg();
         if (scope.picFile && scope.picFile.result) {  // Already uploaded file, remove the whole file object including file metadatas
           ngModel.$setViewValue();
           ngModel.$commitViewValue();
@@ -135,11 +146,12 @@ angular
           scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata', true);
           toggleValidationFileMetadataComponents(false);
         }
-      } else {}
+      }
     };
 
     function doUpload (file) {
       if (file && !file.$error && scope.url) {
+        clearErrorMsg();
         file.upload = Upload.upload({
           url: scope.url,
           file: file,
@@ -167,18 +179,27 @@ angular
           }
         }, function (response) {
           if (response.status > 0) {
-            scope.errorMsg = 'File Upload Failed!';
+            setErrorMsg('File Upload Failed!');
             delete file.progress;
           }
         });
 
         file.upload.progress(function (evt) {
-          if (scope.errorMsg)
+          if (scope.errorMsg) {
             delete file.progress;
-          else
+          } else {
             file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+          }
         });
       }
+    }
+
+    function setErrorMsg (errorMsg) {
+      scope.errorMsg = errorMsg;
+    }
+
+    function clearErrorMsg () {
+      delete scope.errorMsg;
     }
 
     scope.validateField = function () {

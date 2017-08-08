@@ -181,24 +181,24 @@ angular
 
       var id = _getFileIdIfAny();
       if (!id) {
-        $log.warn('ngSchemaFileController#removeFile - aborted due to id is: ' + id);
-        return;
+        $log.info('ngSchemaFileController#removeFile - remove the file without remote call due to id is: ' + id);
+        doRemove();
+      } else {
+        $http({
+          method: 'DELETE',
+          url: _uploadUrl + '/' + id
+        }).then(function (response) {
+          var succeed = response.data;
+          if (succeed) {
+            doRemove();
+          } else {
+            $window.alert('Failed to remove file.');
+          }
+        }, function (response) {
+          $window.alert('An error happened when deleting the file: ' + response.statusText);
+          $log.error(response);
+        });
       }
-
-      $http({
-        method: 'DELETE',
-        url: _uploadUrl + '/' + id
-      }).then(function (response) {
-        var succeed = response.data;
-        if (succeed) {
-          doRemove();
-        } else {
-          $window.alert('Failed to remove file.');
-        }
-      }, function (response) {
-        $window.alert('An error happened when deleting the file: ' + response.statusText);
-        $log.error(response);
-      });
     };
 
     // These methods should be refactored to a service later

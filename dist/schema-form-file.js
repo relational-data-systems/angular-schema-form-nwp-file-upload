@@ -76,11 +76,13 @@ angular
   'ngMessages',
   'pascalprecht.translate'
 ])
-.controller('ngSchemaFileController', ['$scope', '$log', 'Upload', '$interpolate', '$translate', '$timeout', '$q', function ($scope, $log, Upload, $interpolate, $translate, $timeout, $q) {
+.controller('ngSchemaFileController', ['$scope', '$log', 'Upload', '$interpolate', '$translate', '$timeout', '$q', '$http', '$window', function ($scope, $log, Upload, $interpolate, $translate, $timeout, $q, $http, $window) {
   var vm = this;
 
   var scope = null;
   var ngModel = null;
+
+  var _uploadUrl;
 
   vm.init = init;
 
@@ -88,7 +90,7 @@ angular
     ngModel = _ngModel_;
     scope = $scope;
 
-    scope.url = scope.form && scope.form.endpoint;
+    _uploadUrl = scope.form && scope.form.endpoint;
     scope.isSinglefileUpload = scope.form && scope.form.schema && scope.form.schema.format === 'singlefile';
 
     scope.selectFile = function (file) {
@@ -134,46 +136,113 @@ angular
       });
     };
 
-    // kelin: handler for the remove action.
-    // TODO: Need to communicate with server for deletion if the file is already uploaded.
-    scope.removeFile = function () {
-      if (scope.isSinglefileUpload) {
-        clearErrorMsg();
-        if (scope.picFile && scope.picFile.result) {  // Already uploaded file, remove the whole file object including file metadatas
-          ngModel.$setViewValue();
-          ngModel.$commitViewValue();
-        }
-
-        scope.picFile = null;
-
-        if (scope.removeWatchForRequireMetadata) {
-          scope.removeWatchForRequireMetadata();
-          delete scope.removeWatchForRequireMetadata;
-          scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata', true);
-          toggleValidationFileMetadataComponents(false);
-        }
+    function _getFileIdIfAny () {
+      var ngModelValue = ngModel.$modelValue;
+      if (!ngModelValue) {
+        return;
       }
+
+      var primaryKeyPropertyName = ngModelValue.primaryKeyPropertyName;
+      if (!primaryKeyPropertyName) {
+        return;
+      }
+
+      return ngModel.$modelValue[primaryKeyPropertyName];
+    }
+
+    scope.syncFileStatus = function () {
+      if (!scope.isSinglefileUpload) {
+        $log.warn('ngSchemaFileController#syncFileStatus - only support single file at the moment');
+        return;
+      }
+
+      var id = _getFileIdIfAny();
+      if (!id) {
+        $log.warn('ngSchemaFileController#removeFile - skipped due to id is: ' + id);
+        return;
+      }
+
+      $http({
+        method: 'GET',
+        url: _uploadUrl + '/' + id
+      }).then(function (response) {
+        _mergeDataToNgModelValue(response.data);
+      }).catch(function (response) {
+        $window.alert('An error happened when deleting the file: ' + response.statusText);
+        $log.error(response);
+      });
     };
 
+    scope.removeFile = function () {
+      if (!scope.isSinglefileUpload) {
+        $log.warn('ngSchemaFileController#removeFile - only support single file at the moment');
+        return;
+      }
+
+      var id = _getFileIdIfAny();
+      if (!id) {
+        $log.warn('ngSchemaFileController#removeFile - aborted due to id is: ' + id);
+        return;
+      }
+
+      $http({
+        method: 'DELETE',
+        url: _uploadUrl + '/' + id
+      }).then(function (response) {
+        var succeed = response.data;
+        if (succeed) {
+          doRemove();
+        } else {
+          $window.alert('Failed to remove file.');
+        }
+      }, function (response) {
+        $window.alert('An error happened when deleting the file: ' + response.statusText);
+        $log.error(response);
+      });
+    };
+
+    // These methods should be refactored to a service later
+    function doRemove () {
+      clearErrorMsg();
+      if (scope.picFile && scope.picFile.result) {  // Already uploaded file, remove the whole file object including file metadatas
+        ngModel.$setViewValue();
+        ngModel.$commitViewValue();
+      }
+
+      scope.picFile = null;
+
+      if (scope.removeWatchForRequireMetadata) {
+        scope.removeWatchForRequireMetadata();
+        delete scope.removeWatchForRequireMetadata;
+        scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata', true);
+        toggleValidationFileMetadataComponents(false);
+      }
+    }
+
+    function _mergeDataToNgModelValue (data) {
+      if (ngModel.$modelValue) {
+        ngModel.$setViewValue(angular.merge(ngModel.$modelValue, data));
+      } else {
+        ngModel.$setViewValue(data);
+      }
+      ngModel.$commitViewValue();
+    }
+
     function doUpload (file) {
-      if (file && !file.$error && scope.url) {
+      if (file && !file.$error && _uploadUrl) {
         clearErrorMsg();
         file.upload = Upload.upload({
-          url: scope.url,
+          url: _uploadUrl,
           file: file,
           data: {metadata: ngModel.$modelValue}
         });
 
         file.upload.then(function (response) {
+          var data = response.data;
           $timeout(function () {
-            file.result = response.data;
+            file.result = data;
           });
-          if (ngModel.$modelValue) {
-            ngModel.$setViewValue(angular.merge(ngModel.$modelValue, response.data));
-          } else {
-            ngModel.$setViewValue(response.data);
-          }
-          ngModel.$commitViewValue();
+          _mergeDataToNgModelValue(data);
 
           var saveFormAfterUploaded = scope.form && scope.form.saveFormAfterUploaded;
           if (saveFormAfterUploaded) {
@@ -259,7 +328,17 @@ angular
   $scope.interpValidationMessage = function (picFile) {
     var error = picFile.$error; // e.g., 'maxSize'
     var form = scope.form;
-    var message = form.validationMessage[error];
+    var validationMessage = form.validationMessage;
+    var message;
+    if (angular.isString(validationMessage)) {
+      message = validationMessage;
+    } else if (angular.isObject(validationMessage)) {
+      message = validationMessage[error];
+    }
+
+    if (!message) {
+      return error;
+    }
 
     var context = {
       error: error,

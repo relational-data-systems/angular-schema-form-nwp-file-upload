@@ -70,7 +70,7 @@ angular
   'ngMessages',
   'pascalprecht.translate'
 ])
-.controller('ngSchemaFileController', ['$scope', '$log', 'Upload', '$interpolate', '$translate', '$timeout', '$q', '$http', function ($scope, $log, Upload, $interpolate, $translate, $timeout, $q, $http) {
+.controller('ngSchemaFileController', ['$scope', '$log', 'Upload', '$interpolate', '$translate', '$timeout', '$q', '$http', '$window', function ($scope, $log, Upload, $interpolate, $translate, $timeout, $q, $http, $window) {
   var vm = this;
 
   var scope = null;
@@ -130,17 +130,13 @@ angular
       });
     };
 
-    function _getPrimaryKeyPropertyName () {
+    function _getFileIdIfAny () {
       var ngModelValue = ngModel.$modelValue;
       if (!ngModelValue) {
         return;
       }
 
-      return ngModelValue.primaryKeyPropertyName;
-    }
-
-    function _getFileId () {
-      var primaryKeyPropertyName = _getPrimaryKeyPropertyName();
+      var primaryKeyPropertyName = ngModelValue.primaryKeyPropertyName;
       if (!primaryKeyPropertyName) {
         return;
       }
@@ -148,71 +144,82 @@ angular
       return ngModel.$modelValue[primaryKeyPropertyName];
     }
 
-    // kelin: handler for the remove action.
-    // TODO: Need to communicate with server for deletion if the file is already uploaded.
+    scope.syncFileStatus = function () {
+      if (!scope.isSinglefileUpload) {
+        $log.warn('ngSchemaFileController#syncFileStatus - only support single file at the moment');
+        return;
+      }
+
+      var id = _getFileIdIfAny();
+      if (!id) {
+        $log.warn('ngSchemaFileController#removeFile - skipped due to id is: ' + id);
+        return;
+      }
+
+      $http({
+        method: 'GET',
+        url: _uploadUrl + '/' + id
+      }).then(function (response) {
+        _mergeDataToNgModelValue(response.data);
+      }).catch(function (response) {
+        $window.alert('An error happened when deleting the file: ' + response.statusText);
+        $log.error(response);
+      });
+    };
+
     scope.removeFile = function () {
       if (!scope.isSinglefileUpload) {
-        $log.warn('ngSchemaFileController#removeFile - only support removal single file at the moment');
+        $log.warn('ngSchemaFileController#removeFile - only support single file at the moment');
         return;
       }
 
-      var ngModelValue = ngModel.$modelValue;
-      if (!ngModelValue) {
-        $log.warn('ngSchemaFileController#removeFile - aborted due to ngModelValue is: ' + ngModelValue);
-        return;
-      }
-
-      var primaryKeyPropertyName = ngModelValue.primaryKeyPropertyName;
-      if (!primaryKeyPropertyName) {
-        $log.warn('ngSchemaFileController#removeFile - aborted due to invalid primaryKeyPropertyName is: ' + primaryKeyPropertyName);
-        return;
-      }
-
-      var id = ngModel.$modelValue[primaryKeyPropertyName];
+      var id = _getFileIdIfAny();
       if (!id) {
-        $log.error('ngSchemaFileController#removeFile - cannot find file id, current model value is:', angular.toJson(ngModel.$modelValue));
+        $log.warn('ngSchemaFileController#removeFile - aborted due to id is: ' + id);
         return;
       }
 
-      var requestBody = {};
-      requestBody[primaryKeyPropertyName] = id;
-
-      _getPrimaryKeyPropertyName();
-
-      if (scope.isSinglefileUpload) {
-        $http({
-          method: 'DELETE',
-          url: _uploadUrl,
-          data: requestBody
-        }).then(function (response) {
-          var succeed = response.data;
-          if (succeed) {
-            clearErrorMsg();
-            if (scope.picFile && scope.picFile.result) {  // Already uploaded file, remove the whole file object including file metadatas
-              ngModel.$setViewValue();
-              ngModel.$commitViewValue();
-            }
-
-            scope.picFile = null;
-
-            if (scope.removeWatchForRequireMetadata) {
-              scope.removeWatchForRequireMetadata();
-              delete scope.removeWatchForRequireMetadata;
-              scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata', true);
-              toggleValidationFileMetadataComponents(false);
-            }
-          } else {
-            $windows.alert('Failed to remove file.');
-          }
-        }, function (response) {
-
-        });
-      }
+      $http({
+        method: 'DELETE',
+        url: _uploadUrl + '/' + id
+      }).then(function (response) {
+        var succeed = response.data;
+        if (succeed) {
+          doRemove();
+        } else {
+          $window.alert('Failed to remove file.');
+        }
+      }, function (response) {
+        $window.alert('An error happened when deleting the file: ' + response.statusText);
+        $log.error(response);
+      });
     };
 
     // These methods should be refactored to a service later
-    function doRemove (id) {
+    function doRemove () {
+      clearErrorMsg();
+      if (scope.picFile && scope.picFile.result) {  // Already uploaded file, remove the whole file object including file metadatas
+        ngModel.$setViewValue();
+        ngModel.$commitViewValue();
+      }
 
+      scope.picFile = null;
+
+      if (scope.removeWatchForRequireMetadata) {
+        scope.removeWatchForRequireMetadata();
+        delete scope.removeWatchForRequireMetadata;
+        scope.$broadcast('schemaForm.error.' + scope.form.key.join('.'), 'requireMetadata', true);
+        toggleValidationFileMetadataComponents(false);
+      }
+    }
+
+    function _mergeDataToNgModelValue (data) {
+      if (ngModel.$modelValue) {
+        ngModel.$setViewValue(angular.merge(ngModel.$modelValue, data));
+      } else {
+        ngModel.$setViewValue(data);
+      }
+      ngModel.$commitViewValue();
     }
 
     function doUpload (file) {
@@ -225,15 +232,11 @@ angular
         });
 
         file.upload.then(function (response) {
+          var data = response.data;
           $timeout(function () {
-            file.result = response.data;
+            file.result = data;
           });
-          if (ngModel.$modelValue) {
-            ngModel.$setViewValue(angular.merge(ngModel.$modelValue, response.data));
-          } else {
-            ngModel.$setViewValue(response.data);
-          }
-          ngModel.$commitViewValue();
+          _mergeDataToNgModelValue(data);
 
           var saveFormAfterUploaded = scope.form && scope.form.saveFormAfterUploaded;
           if (saveFormAfterUploaded) {
@@ -319,7 +322,17 @@ angular
   $scope.interpValidationMessage = function (picFile) {
     var error = picFile.$error; // e.g., 'maxSize'
     var form = scope.form;
-    var message = form.validationMessage[error];
+    var validationMessage = form.validationMessage;
+    var message;
+    if (angular.isString(validationMessage)) {
+      message = validationMessage;
+    } else if (angular.isObject(validationMessage)) {
+      message = validationMessage[error];
+    }
+
+    if (!message) {
+      return error;
+    }
 
     var context = {
       error: error,

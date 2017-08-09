@@ -86,6 +86,8 @@ angular
 
     $scope.$on('schemaFormValidate', $scope.validateField);
     $scope.$on('schemaFormFileUploadSubmit', $scope.submit);
+
+    $timeout(_syncFileStatus);
   }
 
   $scope.selectFile = function selectFile (file) {
@@ -149,6 +151,19 @@ angular
     }
   };
 
+  function _resetFieldNgModel () {
+    ngModel.$setViewValue();
+    ngModel.$commitViewValue();
+  }
+
+  // This is the ngModel of the "file" input, instead of the ngModel of the whole form
+  function _resetFileNgModel () {
+    var fileNgModel = $scope.uploadForm.file;
+    fileNgModel.$setViewValue();
+    fileNgModel.$commitViewValue();
+    delete $scope.picFile;
+  }
+
   function toggleValidationFileMetadataComponents (required) {
     var fieldToWatch = '';
     var next = $scope.$$prevSibling;
@@ -207,14 +222,9 @@ angular
   };
 
   function doRemove () {
-    clearErrorMsg();
-
-    if ($scope.picFile && $scope.picFile.result) {
-      ngModel.$setViewValue();
-      ngModel.$commitViewValue();
-    }
-
-    $scope.picFile = null;
+    _clearErrorMsg();
+    _resetFieldNgModel();
+    _resetFileNgModel();
 
     if ($scope.removeWatchForRequireMetadata) {
       $scope.removeWatchForRequireMetadata();
@@ -224,20 +234,32 @@ angular
     }
   }
 
-  $scope.initInternalModel = function initInternalModel () {
-    _syncFileStatus();
-  };
-
   function _doSyncSuccess (model) {
-    _mergeDataToNgModelValue(model);
+    _mergeDataToNgModelValue(angular.merge({}, model, {progress: 100}));
     _updateFileInfo(ngModel.$modelValue);
   }
 
-  function _doSyncError (errorMsg) {
-    _mergeDataToNgModelValue({
-      status: 'sync_error'
-    });
-    _updateFileInfo(ngModel.$modelValue);
+  function _doSyncFailed (response) {
+    var errorMsg;
+    if (response.status === 404) {
+      errorMsg = 'File "{{ file.name }}" no longer exists on server, please upload again.';
+      _mergeDataToNgModelValue({
+        progress: 0,
+        status: 'none'
+      });
+    } else if (response.status === 410) { // "Gone"
+      errorMsg = 'File "{{ file.name }}" is expired, please upload again.';
+      _mergeDataToNgModelValue({
+        progress: 0,
+        status: 'expired'
+      });
+    } else {
+      errorMsg = 'Failed to get file "{{ file.name }}" from server: ' + response.statusText;
+      _mergeDataToNgModelValue({
+        progress: 0,
+        status: 'sync_error'
+      });
+    }
     setErrorMsg(errorMsg);
   }
 
@@ -254,7 +276,7 @@ angular
     $scope.picFile = {
       result: model,
       name: model.name,
-      progress: 100,
+      progress: angular.isNumber(model.progress) ? model.progress : 0,
       size: angular.isNumber(model.size) ? model.size : undefined,
       type: model.type,
       status: model.status
@@ -263,7 +285,7 @@ angular
 
   function doUpload (file) {
     if (file && !file.$error && _uploadUrl) {
-      clearErrorMsg();
+      _clearErrorMsg();
       file.upload = Upload.upload({
         url: _uploadUrl,
         file: file,
@@ -302,13 +324,25 @@ angular
     }
   }
 
-  function setErrorMsg (errorMsg) {
+  function setErrorMsg (messageExp) {
+    var errorMsg = $interpolate(messageExp)({
+      file: ngModel.$modelValue
+    });
     $scope.errorMsg = errorMsg;
   }
 
-  function clearErrorMsg () {
+  function _clearErrorMsg () {
     delete $scope.errorMsg;
   }
+
+  $scope.isValidFile = function () {
+    var picFile = $scope.picFile;
+    if (!picFile) {
+      return false;
+    }
+
+    return picFile.status !== 'none' && picFile.status !== 'expired';
+  };
 
   function _syncFileStatus () {
     if (!$scope.isSinglefileUpload) {
@@ -328,9 +362,7 @@ angular
     }).then(function (response) {
       _doSyncSuccess(response.data);
     }).catch(function (response) {
-      var errorMsg = 'Failed to get the file info from server: ' + response.statusText;
-      $log.error(errorMsg, response);
-      _doSyncError(errorMsg);
+      _doSyncFailed(response);
     });
   }
 

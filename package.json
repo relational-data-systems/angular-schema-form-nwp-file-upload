@@ -66,5 +66,10 @@
   "bugs": {
     "url": "https://github.com/saburab/angular-schema-form-nwp-file-upload/issues"
   },
-  "homepage": "https://github.com/saburab/angular-schema-form-nwp-file-upload#readme"
+  "homepage": "https://github.com/saburab/angular-schema-form-nwp-file-upload#readme",
+  "semistandard": {
+    "globals": [
+      "angular"
+    ]
+  }
 }

@@ -185,12 +185,12 @@ angular
       return;
     }
 
-    var primaryKeyPropertyName = ngModelValue.primaryKeyPropertyName;
-    if (!primaryKeyPropertyName) {
+    var idPropertyName = ngModelValue.idPropertyName;
+    if (!idPropertyName) {
       return;
     }
 
-    return ngModel.$modelValue[primaryKeyPropertyName];
+    return ngModel.$modelValue[idPropertyName];
   }
 
   $scope.removeFile = function removeFile () {

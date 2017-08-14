@@ -96,16 +96,19 @@ angular
     }
     $scope.picFile = file;
 
-    if ($scope.$$prevSibling && $scope.$$prevSibling.form && $scope.$$prevSibling.form.key.join('.').startsWith($scope.form.key.join('.'))) {
-      toggleValidationFileMetadataComponents(true);
-      var expr = "evalExpr('" + $scope.fieldToWatch + "',{ model: model, 'arrayIndex': 0, 'modelValue': ''})";
-      $scope.removeWatchForRequireMetadata = $scope.$watch(expr, function (value) {
-        if (!value) {
-          $scope.$broadcast('schemaForm.error.' + $scope.getModelPath().join('.'), 'requireMetadata', null, false);
-        } else {
-          $scope.$broadcast('schemaForm.error.' + $scope.getModelPath().join('.'), 'requireMetadata', null, true);
-        }
-      });
+    if ($scope.$$prevSibling && $scope.$$prevSibling.form) {
+      var prevSiblingFormKey = $scope.$$prevSibling.form.key;
+      if (prevSiblingFormKey && prevSiblingFormKey.join('.').startsWith($scope.form.key.join('.'))) {
+        toggleValidationFileMetadataComponents(true);
+        var expr = "evalExpr('" + $scope.fieldToWatch + "',{ model: model, 'arrayIndex': 0, 'modelValue': ''})";
+        $scope.removeWatchForRequireMetadata = $scope.$watch(expr, function (value) {
+          if (!value) {
+            $scope.$broadcast('schemaForm.error.' + $scope.getModelPath().join('.'), 'requireMetadata', null, false);
+          } else {
+            $scope.$broadcast('schemaForm.error.' + $scope.getModelPath().join('.'), 'requireMetadata', null, true);
+          }
+        });
+      }
     }
 
     if ($scope.form && $scope.form.autoUploadOnSelect === true) {

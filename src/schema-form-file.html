@@ -1,6 +1,6 @@
 <ng-form class="file-upload mb-lg" ng-schema-file schema-validate="form" sf-field-model="replaceAll" ng-model="$$value$$" name="uploadForm">
   <label ng-show="form.title && form.notitle !== true" class="control-label" for="fileInputButton" ng-class="{'sr-only': !showTitle(), 'text-danger': uploadForm.$error.required && !uploadForm.$pristine}">
-    {{ form.title }}<i ng-show="form.required">&nbsp;*</i>
+    {{::form.title}}<i ng-show="form.required">&nbsp;*</i>
   </label>
 
   <div ng-show="picFile" class="well well-sm bg-white mb" ng-class="{'has-error border-danger': (uploadForm.$error.required && !uploadForm.$pristine) || (hasError() && errorMessage(schemaError()))}">

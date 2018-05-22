@@ -12,7 +12,7 @@
         'modules.upload.field.filename' | translate }}</label>
      <div class="filename" title="{{ picFile.name }}">{{ picFile.name }}</div>
   </div>
-  <div class="col-sm-4 mb-sm">
+  <div class="col-sm-4 mb-sm" ng-if="!form.readonly">
      <label title="{{ 'modules.upload.field.progress' | translate }}" class="text-info">{{
         'modules.upload.field.progress' | translate }}</label>
      <div class="progress">

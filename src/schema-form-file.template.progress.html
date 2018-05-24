@@ -22,10 +22,10 @@
            {{ picFile.progress }} %
         </div>
      </div>
-     <button class="btn btn-primary btn-sm" type="button" ng-click="uploadFile(picFile)"
+     <button class="btn btn-default btn-sm rds-fileupload-upload-btn" type="button" ng-click="uploadFile(picFile)"
              ng-disabled="ngModel.$error.requireMetadata||!picFile || picFile.result || picFile.$error">{{ !picFile.result ?  "buttons.upload" : "buttons.uploaded" | translate }}
      </button>
-     <button class="btn btn-danger btn-sm" type="button" ng-click="removeFile(picFile)"
+     <button class="btn btn-default btn-sm rds-fileupload-remove-btn" type="button" ng-click="removeFile(picFile)"
              ng-disabled="!picFile">{{ "buttons.remove" | translate }}
      </button>
   </div>
